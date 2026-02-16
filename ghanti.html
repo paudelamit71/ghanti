@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghanti</title>
+
+<style>
+body{
+    margin:0;
+    background:#0094DA;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    font-family:Arial, sans-serif;
+}
+
+.white-circle{
+    width:300px;
+    height:300px;
+    background:white;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.2);
+    cursor:pointer;
+    position:relative;
+}
+
+.bell{
+    font-size:100px;
+    transition:transform 0.3s ease;
+}
+
+@keyframes swing {
+    0%{ transform:rotate(0deg); }
+    25%{ transform:rotate(15deg); }
+    75%{ transform:rotate(-15deg); }
+    100%{ transform:rotate(0deg); }
+}
+
+.swing{
+    animation:swing 0.5s ease;
+}
+
+.ripple{
+    position:absolute;
+    border:2px solid #0094DA;
+    border-radius:50%;
+    animation:ripple 1s ease-out forwards;
+}
+
+@keyframes ripple{
+    from{
+        width:50%;
+        height:50%;
+        opacity:1;
+    }
+    to{
+        width:120%;
+        height:120%;
+        opacity:0;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="white-circle" id="bell">
+    <div class="bell" id="bellIcon">🔔</div>
+</div>
+
+<script>
+const bell = document.getElementById("bell");
+const bellIcon = document.getElementById("bellIcon");
+
+let audioContext;
+let buffer;
+
+async function initAudio(){
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    const duration = 3.5;   // longer metallic tail
+    const sampleRate = audioContext.sampleRate;
+    const length = sampleRate * duration;
+
+    buffer = audioContext.createBuffer(1, length, sampleRate);
+    const data = buffer.getChannelData(0);
+
+    const baseFreq = 480;
+
+    const harmonics = [
+        {ratio:1, amp:1.0, decay:2.0},
+        {ratio:2.3, amp:0.7, decay:2.5},
+        {ratio:3.7, amp:0.5, decay:3.0},
+        {ratio:5.4, amp:0.3, decay:4.0},
+        {ratio:7.1, amp:0.2, decay:5.0}
+    ];
+
+    for(let i=0;i<length;i++){
+        const t = i/sampleRate;
+        let sample = 0;
+
+        harmonics.forEach(h=>{
+            sample += Math.sin(2*Math.PI*baseFreq*h.ratio*t) *
+                      h.amp *
+                      Math.exp(-h.decay*t);
+        });
+
+        // metallic shimmer
+        sample += Math.sin(2*Math.PI*3200*t) * 0.15 * Math.exp(-6*t);
+
+        data[i] = sample * 0.4;
+    }
+}
+
+
+async function playBell(){
+    if(!audioContext){
+        await initAudio();
+    }
+
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+
+    bellIcon.classList.add("swing");
+    setTimeout(()=> bellIcon.classList.remove("swing"),500);
+
+    const ripple = document.createElement("div");
+    ripple.classList.add("ripple");
+    bell.appendChild(ripple);
+    setTimeout(()=> ripple.remove(),1000);
+}
+
+function delay(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 🔔 Triple ring on single click
+bell.addEventListener("click", async ()=>{
+    for(let i=0;i<3;i++){
+        await playBell();
+        await delay(500);
+    }
+});
+</script>
+
+</body>
+</html>
