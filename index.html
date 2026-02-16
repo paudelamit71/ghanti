@@ -1,133 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ghanti</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghanti - Interactive Bell</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<style>
-body{
-    margin:0;
-    background:#0094DA;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    font-family:Arial, sans-serif;
-}
+        body {
+            background: linear-gradient(135deg, #0094DA 0%, #0073B8 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
 
-.white-circle{
-    width:300px;
-    height:300px;
-    background:white;
-    border-radius:50%;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    box-shadow:0 20px 60px rgba(0,0,0,0.2);
-    cursor:pointer;
-    position:relative;
-}
+        .container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-.bell{
-    font-size:100px;
-    transition:transform 0.3s ease;
-}
+        .white-circle {
+            width: 300px;
+            height: 300px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 
+                        0 0 40px rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s ease;
+        }
 
-@keyframes swing {
-    0%{ transform:rotate(0deg); }
-    25%{ transform:rotate(15deg); }
-    75%{ transform:rotate(-15deg); }
-    100%{ transform:rotate(0deg); }
-}
+        .white-circle:hover {
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35), 
+                        0 0 50px rgba(255, 255, 255, 0.6);
+            transform: translateY(-5px);
+        }
 
-.swing{
-    animation:swing 0.5s ease;
-}
+        .white-circle:active {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+        }
 
-.ripple{
-    position:absolute;
-    border:2px solid #0094DA;
-    border-radius:50%;
-    animation:ripple 1s ease-out forwards;
-}
+        .bell-icon {
+            font-size: 120px;
+            display: inline-block;
+            transform-origin: 50% 20%;
+            line-height: 1;
+        }
 
-@keyframes ripple{
-    from{
-        width:50%;
-        height:50%;
-        opacity:1;
-    }
-    to{
-        width:120%;
-        height:120%;
-        opacity:0;
-    }
-}
-</style>
+        @keyframes swing {
+            0% { transform: rotate(0deg) scale(1); }
+            10% { transform: rotate(14deg) scale(1.05); }
+            20% { transform: rotate(28deg) scale(1.08); }
+            30% { transform: rotate(20deg) scale(1.06); }
+            40% { transform: rotate(-15deg) scale(1.05); }
+            50% { transform: rotate(-25deg) scale(1.08); }
+            60% { transform: rotate(-10deg) scale(1.05); }
+            70% { transform: rotate(8deg) scale(1.04); }
+            85% { transform: rotate(-3deg) scale(1.02); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        .swing {
+            animation: swing 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 
+                            0 0 40px rgba(255, 255, 255, 0.5),
+                            0 0 0 0 rgba(0, 148, 218, 0.7);
+            }
+            50% {
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 
+                            0 0 40px rgba(255, 255, 255, 0.5),
+                            0 0 0 30px rgba(0, 148, 218, 0);
+            }
+            100% {
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 
+                            0 0 40px rgba(255, 255, 255, 0.5),
+                            0 0 0 0 rgba(0, 148, 218, 0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 0.6s ease-out;
+        }
+
+        .ripple {
+            position: absolute;
+            border: 2px solid rgba(0, 148, 218, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-expand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 600px;
+                height: 600px;
+                opacity: 0;
+            }
+        }
+
+        .ripple.active {
+            animation: ripple-expand 0.8s ease-out forwards;
+        }
+
+        .info-text {
+            position: absolute;
+            bottom: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sound-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sound-indicator.active {
+            animation: soundPulse 0.5s ease;
+        }
+
+        @keyframes soundPulse {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="white-circle" id="bell">
+            <div class="bell-icon" id="bellIcon">🔔</div>
+        </div>
+        <div class="sound-indicator" id="soundIndicator">🔊</div>
+    </div>
+    <div class="info-text" id="infoText">Click the bell to ring</div>
 
-<div class="white-circle" id="bell">
-    <div class="bell" id="bellIcon">🔔</div>
-</div>
+    <script>
+        class BellApp {
+            constructor() {
+                this.bell = document.getElementById('bell');
+                this.bellIcon = document.getElementById('bellIcon');
+                this.soundIndicator = document.getElementById('soundIndicator');
+                this.infoText = document.getElementById('infoText');
+                
+                this.audioContext = null;
+                this.oscillators = [];
+                this.gains = [];
+                this.isPlaying = false;
+                this.audioInitialized = false;
+                
+                this.init();
+            }
 
-<script>
-const bell = document.getElementById("bell");
-const bellIcon = document.getElementById("bellIcon");
+            async init() {
+                // Initialize audio on first click
+                document.addEventListener('click', () => this.initAudio(), { once: true });
+                
+                // Add bell click listener
+                this.bell.addEventListener('click', () => this.ringBell());
+            }
 
-let audioContext;
-let buffer;
+            initAudio() {
+                if (this.audioInitialized) return;
+                
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.audioContext = new AudioContext();
+                    this.audioInitialized = true;
+                    console.log('✓ Audio initialized');
+                } catch (e) {
+                    console.error('✗ Audio Context failed:', e);
+                    this.infoText.textContent = 'Audio not supported';
+                }
+            }
 
-async function initAudio(){
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            async ringBell() {
+                if (this.isPlaying) return;
+                
+                // Trigger animation
+                this.bellIcon.classList.remove('swing');
+                void this.bellIcon.offsetWidth; // Trigger reflow
+                this.bellIcon.classList.add('swing');
 
-    const duration = 3.5;   // longer metallic tail
-    const sampleRate = audioContext.sampleRate;
-    const length = sampleRate * duration;
+                // Trigger pulse
+                this.bell.classList.remove('pulse');
+                void this.bell.offsetWidth;
+                this.bell.classList.add('pulse');
 
-    buffer = audioContext.createBuffer(1, length, sampleRate);
-    const data = buffer.getChannelData(0);
+                // Create ripples
+                this.createRipples();
 
-    const baseFreq = 480;
+                // Play sounds
+                await this.playSounds();
+            }
 
-    const harmonics = [
-        {ratio:1, amp:1.0, decay:2.0},
-        {ratio:2.3, amp:0.7, decay:2.5},
-        {ratio:3.7, amp:0.5, decay:3.0},
-        {ratio:5.4, amp:0.3, decay:4.0},
-        {ratio:7.1, amp:0.2, decay:5.0}
-    ];
+            createRipples() {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const ripple = document.createElement('div');
+                        ripple.classList.add('ripple');
+                        this.bell.appendChild(ripple);
+                        
+                        requestAnimationFrame(() => {
+                            ripple.classList.add('active');
+                        });
+                        
+                        setTimeout(() => ripple.remove(), 800);
+                    }, i * 100);
+                }
+            }
 
-    for(let i=0;i<length;i++){ 
-        const t = i/sampleRate;
-        let sample = 0;
+            async playSounds() {
+                if (!this.audioInitialized || !this.audioContext) {
+                    this.infoText.textContent = 'Enable audio first';
+                    return;
+                }
 
-        harmonics.forEach(h=>{
-            sample += Math.sin(2*Math.PI*baseFreq*h.ratio*t) *
-                      h.amp *
-                      Math.exp(-h.decay*t);
-        });
+                this.isPlaying = true;
+                const timings = [0, 600, 1100];
 
-        // metallic shimmer
-        sample += Math.sin(2*Math.PI*3200*t) * 0.15 * Math.exp(-6*t);
+                for (let timing of timings) {
+                    await this.delay(timing);
+                    this.playBellTone();
+                    this.showSoundIndicator();
+                }
 
-        data[i] = sample * 0.4;
-    }
-}
+                this.isPlaying = false;
+            }
 
-function delay(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+            playBellTone() {
+                try {
+                    const ctx = this.audioContext;
+                    const now = ctx.currentTime;
+                    const duration = 2.5;
 
-// 🔔 Triple ring on single click
-bell.addEventListener("click", async ()=>{
-    for(let i=0;i<3;i++){
-        await playBell();
-        await delay(500);
-    }
-});
-</script>
+                    // Harmonic series for bell-like sound
+                    const harmonics = [
+                        { freq: 400, amp: 0.3, decay: 1.5 },
+                        { freq: 920, amp: 0.4, decay: 2.0 },
+                        { freq: 1640, amp: 0.25, decay: 2.5 },
+                        { freq: 2840, amp: 0.15, decay: 3.0 },
+                        { freq: 4100, amp: 0.1, decay: 4.0 }
+                    ];
 
+                    harmonics.forEach(h => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+
+                        osc.frequency.value = h.freq;
+                        osc.type = 'sine';
+
+                        // Amplitude envelope
+                        gain.gain.setValueAtTime(h.amp, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+
+                        osc.start(now);
+                        osc.stop(now + duration);
+
+                        this.oscillators.push(osc);
+                        this.gains.push(gain);
+                    });
+
+                    // Add noise for metallic shimmer
+                    this.addMetallicNoise(now, duration);
+
+                } catch (e) {
+                    console.error('✗ Sound playback error:', e);
+                }
+            }
+
+            addMetallicNoise(now, duration) {
+                try {
+                    const ctx = this.audioContext;
+                    const bufferSize = ctx.sampleRate * duration;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+
+                    // Generate noise with decay
+                    for (let i = 0; i < bufferSize; i++) {
+                        const t = i / ctx.sampleRate;
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-3 * t) * 0.1;
+                    }
+
+                    const source = ctx.createBufferSource();
+                    const gain = ctx.createGain();
+
+                    source.buffer = buffer;
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+                    source.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    source.start(now);
+                } catch (e) {
+                    console.log('Noise shimmer skipped');
+                }
+            }
+
+            showSoundIndicator() {
+                this.soundIndicator.classList.remove('active');
+                void this.soundIndicator.offsetWidth;
+                this.soundIndicator.classList.add('active');
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Initialize the app
+        const app = new BellApp();
+    </script>
 </body>
 </html>
