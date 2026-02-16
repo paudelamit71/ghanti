@@ -117,24 +117,43 @@ async function initAudio(){
 }
 
 
-async function playBell(){
-    if(!audioContext){
-        await initAudio();
+async function initAudio(){
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    const duration = 3.5;   // longer metallic tail
+    const sampleRate = audioContext.sampleRate;
+    const length = sampleRate * duration;
+
+    buffer = audioContext.createBuffer(1, length, sampleRate);
+    const data = buffer.getChannelData(0);
+
+    const baseFreq = 480;
+
+    const harmonics = [
+        {ratio:1, amp:1.0, decay:2.0},
+        {ratio:2.3, amp:0.7, decay:2.5},
+        {ratio:3.7, amp:0.5, decay:3.0},
+        {ratio:5.4, amp:0.3, decay:4.0},
+        {ratio:7.1, amp:0.2, decay:5.0}
+    ];
+
+    for(let i=0;i<length;i++){
+        const t = i/sampleRate;
+        let sample = 0;
+
+        harmonics.forEach(h=>{
+            sample += Math.sin(2*Math.PI*baseFreq*h.ratio*t) *
+                      h.amp *
+                      Math.exp(-h.decay*t);
+        });
+
+        // metallic shimmer
+        sample += Math.sin(2*Math.PI*3200*t) * 0.15 * Math.exp(-6*t);
+
+        data[i] = sample * 0.4;
     }
-
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioContext.destination);
-    source.start(0);
-
-    bellIcon.classList.add("swing");
-    setTimeout(()=> bellIcon.classList.remove("swing"),500);
-
-    const ripple = document.createElement("div");
-    ripple.classList.add("ripple");
-    bell.appendChild(ripple);
-    setTimeout(()=> ripple.remove(),1000);
 }
+
 
 function delay(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
